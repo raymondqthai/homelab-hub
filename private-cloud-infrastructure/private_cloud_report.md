@@ -1,20 +1,29 @@
-### Homelab Project Report
-# Private Cloud Infrastructure
+Homelab Project Report
+# Private Cloud Infrastructure: Nextcloud, Navidrome, Tailscale
 
-| | |
-|---|---|
-| **Type** | Personal Homelab Project |
-| **Status** | Complete |
-| **Platform** | Ubuntu, Docker, Tailscale |
-| **Stack** | Nextcloud, Navidrome, PostgreSQL |
+## **Project Specifications**
+
+| **Project Name**   | Homelab Private Cloud Infrastructure |
+| ------------------ | ------------------------------------ |
+| **Host OS**        | Ubuntu 24.04 LTS (Noble Numbat)      |
+| **CPU**            | Intel Core i9-13900H                 |
+| **GPU**            | NVIDIA RTX 4070 Laptop               |
+| **RAM**            | 32GB DDR5                            |
+| **Runtime**        | Docker + Docker Compose v5.1.1       |
+| **Database**       | PostgreSQL 15                        |
+| **File Service**   | Nextcloud (latest)                   |
+| **Music Service**  | Navidrome (latest)                   |
+| **Remote Access**  | Tailscale (WireGuard-based VPN mesh) |
+| **Client Devices** | macOS, iOS                           |
+| **Access Method**  | Tailscale 100.x.x.x IP addresses     |
 
 ---
 
 ## Problem Statement
 
-Commercial cloud storage and streaming platforms collect and monetize user data. Free tiers often involve data sharing with third parties. Paid subscriptions add recurring costs for services that offer no data ownership or transparency.
+This report documents the design, deployment, and outcome of a self-hosted private cloud infrastructure built on a personal laptop running Ubuntu 24.04 LTS. The project objective was to replace commercial cloud storage and music streaming services with open-source alternatives under full personal control, accessible remotely from any device without relying on third-party platforms.
 
-The goal was to eliminate dependence on third-party cloud services for personal file storage and music streaming, with full ownership of data and infrastructure, at no recurring cost.
+The deployed stack consists of Nextcloud for file storage and sync, Navidrome for music streaming, PostgreSQL as the database backend, and Tailscale for secure remote access. All services run in Docker containers managed by Docker Compose. The project was completed successfully with all target services operational and accessible from mobile and desktop clients over the Tailscale network.
 
 ---
 
@@ -31,34 +40,67 @@ The goal was to eliminate dependence on third-party cloud services for personal 
 
 A self-hosted server was built on a personal laptop running Ubuntu. All services run in Docker containers orchestrated with Docker Compose, keeping the host system clean and each service isolated.
 
-### File Storage: Nextcloud
+### Service selection
 
-Nextcloud provides file storage, sync, and browser-based access across all devices. PostgreSQL was selected as the database backend over the default SQLite for better long-term performance as the file library grows. Files sync to connected devices using the Nextcloud desktop and mobile clients.
+Nextcloud was selected as the file storage layer because it combines file sync, a web interface, and mobile and desktop clients in a single package. Competing options like Syncthing lack user account management and a web UI. Seafile is comparable but has a less active open-source community. Nextcloud is the most complete personal cloud solution without requiring multiple tools.
 
-### Music Streaming: Navidrome
+Navidrome was selected for music streaming over Jellyfin because it is purpose-built for audio. Jellyfin covers video, books, and music together, which carries unnecessary overhead for a music-only use case. Navidrome exposes a Subsonic-compatible API that works natively with established mobile clients on both iOS and Android.
 
-Navidrome handles music streaming via the Subsonic API. It was selected for its low resource footprint and dedicated audio focus. The service streams FLAC and MP3 files directly from local storage. Mobile playback uses the Substreamer app on iOS connected over Tailscale.
+PostgreSQL was selected as the database over SQLite and MariaDB. SQLite, Nextcloud's default, degrades under concurrent access as file counts grow. MariaDB is Nextcloud's officially documented recommendation. PostgreSQL is what Nextcloud uses in its own official All-in-One Docker image. For a long-term personal server, PostgreSQL is the more durable choice.
 
-### Remote Access: Tailscale
+### Containerization
 
-Tailscale creates a private WireGuard-based mesh network between the server, phone, and Mac. All remote access to Nextcloud and Navidrome routes through this encrypted tunnel. No ports are exposed to the public internet.
+Docker with Docker Compose was chosen over a manual installation for three reasons. First, Ubuntu 24.04 ships with Python 3.12, which breaks the apt version of docker-compose (1.29.2) with a ModuleNotFoundError on the distutils module. A direct install from GitHub resolved this. Second, containers isolate each service with its own dependencies, preventing version conflicts on the host. Third, updates and resets are single-command operations that do not require modifying the host system.
+
+### Remote access
+
+Tailscale was chosen over a traditional VPN because it requires no port forwarding, no static IP, and no dynamic DNS configuration. It uses WireGuard under the hood and assigns each device a stable 100.x.x.x address that works consistently across different networks. Setup time was under 15 minutes across three devices.
 
 ---
 
 ## Results
 
-- Full file library accessible from Mac, phone, and browser with no third-party cloud involvement
-- Music library of FLAC and MP3 files streaming reliably to mobile over Tailscale
-- Zero recurring subscription costs for storage or streaming
-- All data stored on local hardware under direct ownership and control
-- Services start automatically on boot via Docker restart policies
+### Deployment Log
+
+| **System update**       | sudo apt update && sudo apt upgrade completed without errors                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| **Docker install**      | docker.io installed via apt. User added to docker group. hello-world test passed               |
+| **Docker Compose**      | apt version 1.29.2 failed due to Python 3.12 incompatibility. Replaced with v5.1.1 from GitHub |
+| **Directory structure** | ~/server with subdirectories for nextcloud, navidrome, postgres created                        |
+| **Compose file**        | Three-service docker-compose.yml written for postgres, nextcloud, and navidrome                |
+| **Stack launch**        | docker-compose up -d: all three containers started successfully on first run                   |
+| **Nextcloud setup**     | Admin account created, PostgreSQL selected as database, initial setup completed                |
+| **Navidrome setup**     | Admin account created, music folder configured, 1-hour scan interval set                       |
+| **Tailscale**           | Installed via install.sh, authenticated, Tailscale IP assigned and confirmed                   |
+| **Trusted domain**      | Tailscale IP added to Nextcloud trusted_domains via occ command                                |
+| **Client access**       | Nextcloud and Navidrome confirmed accessible from macOS and iOS over Tailscale                 |
+
+### Service Status
+
+| **Component**     | **Status**  | **Notes**                               |
+| ----------------- | ----------- | --------------------------------------- |
+| **PostgreSQL 15** | Operational | Database backend for Nextcloud          |
+| **Nextcloud**     | Operational | File storage and sync active            |
+| **Navidrome**     | Operational | Music streaming active                  |
+| **Tailscale**     | Operational | Remote access confirmed on all devices  |
+
 
 ---
 
 ## Skills Demonstrated
 
-- Linux system administration (Ubuntu, SSH, package management)
-- Docker and Docker Compose: multi-container orchestration
-- PostgreSQL: database configuration and integration
-- Networking: LAN configuration, Tailscale VPN, trusted domain management
-- Self-hosted infrastructure: service deployment, container management, troubleshooting
+- Linux system administration on Ubuntu 24.04 LTS
+- Docker and Docker Compose for multi-service container orchestration
+- Service configuration and inter-container networking (Nextcloud to PostgreSQL)
+- Network troubleshooting: interface identification, local IP discovery, Ethernet vs WiFi
+- Dependency conflict resolution: Python 3.12 and docker-compose incompatibility
+- Remote access configuration with Tailscale and WireGuard
+- Nextcloud administration via the occ command-line tool
+- SSH-based remote server administration from macOS
+- Infrastructure documentation for technical and professional audiences
+
+---
+
+## Conclusion
+
+The deployment was completed successfully. All target services are operational and accessible remotely from macOS and iOS over Tailscale. File storage, music streaming, and remote access work fully using only open-source software on personal hardware with no recurring subscription costs.

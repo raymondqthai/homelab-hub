@@ -1,24 +1,26 @@
-### Homelab Project Guide
+Homelab Project Guide
 # Private Cloud Infrastructure: Nextcloud, Navidrome, and Tailscale
 
 ---
 
 ## Overview
 
-This project documents the setup of a personal homelab server running on a laptop with Ubuntu. The stack replaces commercial cloud storage and music streaming with self-hosted alternatives, accessible from any device over a private Tailscale network.
+This guide walks through deploying a self-hosted private cloud on a personal laptop running Ubuntu 24.04 LTS. The stack replaces commercial services like Dropbox, Google Drive, and Spotify with open-source alternatives you control completely. Remote access is handled by Tailscale, which eliminates the need for port forwarding or a static IP address.
 
-All services run in Docker containers managed with Docker Compose. No cloud subscriptions. No data on third-party servers.
+The entire stack runs in Docker containers, keeping the host system clean and making updates and resets straightforward.
 
 ---
 
 ## Stack
 
-- Ubuntu (Intel CPU, Nvidia GPU)
-- Docker and Docker Compose
-- Nextcloud: file storage and sync
-- Navidrome: music streaming
-- PostgreSQL: Nextcloud database
-- Tailscale: private remote access
+| **Files**         | Nextcloud                       |
+| ----------------- | ------------------------------- |
+| **Music**         | Navidrome                       |
+| **Remote Access** | Tailscale                       |
+| **Database**      | PostgreSQL 15                   |
+| **Runtime**       | Docker + Docker Compose         |
+| **Host OS**       | Ubuntu 24.04 LTS (Noble Numbat) |
+| **Architecture**  | x86_64                          |
 
 ---
 
@@ -36,9 +38,11 @@ Music files are streamed via Navidrome using the Subsonic API. The Substreamer a
 
 ## Prerequisites
 
-- A machine running Ubuntu (this guide uses a laptop with an ethernet connection)
-- SSH access from another machine on the same network
-- A Tailscale account at tailscale.com
+- Ubuntu 24.04 LTS (Noble Numbat) installed on the server machine
+- SSH access from your client machine to the server
+- A Tailscale account (free tier works)
+- Tailscale already installed on any devices you want to connect (phone, laptop)
+- An external USB drive or sufficient internal storage for files and music
 
 ---
 

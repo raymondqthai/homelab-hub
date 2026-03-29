@@ -1,5 +1,5 @@
 Homelab Project Guide
-# Remote Upload Music File Distribution: Syncthing, Navidrome, Rockbox
+# Remote Upload Music File Pipeline: Syncthing, Navidrome, Rockbox
 
 ---
 
